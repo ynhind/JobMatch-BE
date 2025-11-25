@@ -34,11 +34,11 @@ app.use(
     origin: [
       process.env.FRONTEND_URL || "http://localhost:5173",
       "http://localhost:5173",
-      "https://jobmatch-fe.vercel.app"
+      "https://jobmatch-fe.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
