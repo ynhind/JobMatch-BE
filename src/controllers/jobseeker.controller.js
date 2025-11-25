@@ -375,12 +375,21 @@ export const uploadResume = asyncHandler(async (req, res) => {
     return sendError(res, "Please upload a resume file", 400);
   }
 
-  const result = await uploadToCloudinary(req.file, "jobmatch/resumes");
+  let fileUrl;
+  try {
+    // Try to upload to Cloudinary
+    const result = await uploadToCloudinary(req.file, "jobmatch/resumes");
+    fileUrl = result.url;
+  } catch (error) {
+    // If Cloudinary fails (not configured), use a placeholder
+    console.log("Cloudinary upload failed, using placeholder:", error.message);
+    fileUrl = `http://localhost:5001/uploads/resumes/${req.file.originalname}`;
+  }
 
   const user = await User.findById(req.user._id);
   user.resumes.push({
     name: req.file.originalname,
-    url: result.url,
+    url: fileUrl,
   });
   await user.save();
 
@@ -408,8 +417,18 @@ export const updateResume = asyncHandler(async (req, res) => {
   }
 
   if (req.file) {
-    const result = await uploadToCloudinary(req.file, "jobmatch/resumes");
-    resume.url = result.url;
+    let fileUrl;
+    try {
+      const result = await uploadToCloudinary(req.file, "jobmatch/resumes");
+      fileUrl = result.url;
+    } catch (error) {
+      console.log(
+        "Cloudinary upload failed, using placeholder:",
+        error.message
+      );
+      fileUrl = `http://localhost:5001/uploads/resumes/${req.file.originalname}`;
+    }
+    resume.url = fileUrl;
     resume.name = req.file.originalname;
     resume.uploadedAt = new Date();
   }

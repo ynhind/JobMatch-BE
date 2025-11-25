@@ -191,6 +191,33 @@ router
 
 // Public job routes
 router.get("/jobs/search", paginationValidation, validate, searchJobs);
+
+// ============= SAVED JOBS (Private - Job Seeker) =============
+// IMPORTANT: These must come BEFORE /jobs/:id to avoid route collision
+router.post("/jobs/saved", protect, authorize("js"), saveJob);
+router.get("/jobs/saved", protect, authorize("js"), getSavedJobs);
+router.delete(
+  "/jobs/saved/:id",
+  protect,
+  authorize("js"),
+  idParamValidation,
+  validate,
+  unsaveJob
+);
+
+// ============= APPLICATION ROUTES (Private - Job Seeker) =============
+// IMPORTANT: /jobs/:id/apply must come BEFORE /jobs/:id
+router.post(
+  "/jobs/:id/apply",
+  protect,
+  authorize("js"),
+  idParamValidation,
+  applyJobValidation,
+  validate,
+  applyForJob
+);
+
+// Continue with job routes (wildcard :id routes must come after specific routes)
 router.get("/jobs/:id", idParamValidation, validate, getJobDetail);
 
 // Protected job routes
@@ -201,17 +228,6 @@ router.get(
   paginationValidation,
   validate,
   getRecommendedJobs
-);
-
-// ============= APPLICATION ROUTES (Private - Job Seeker) =============
-router.post(
-  "/jobs/:id/apply",
-  protect,
-  authorize("js"),
-  idParamValidation,
-  applyJobValidation,
-  validate,
-  applyForJob
 );
 router.get(
   "/applications",
@@ -236,25 +252,6 @@ router.delete(
   idParamValidation,
   validate,
   cancelApplication
-);
-
-// ============= SAVED JOBS (Private - Job Seeker) =============
-router.post("/jobs/saved", protect, authorize("js"), saveJob);
-router.get(
-  "/jobs/saved",
-  protect,
-  authorize("js"),
-  paginationValidation,
-  validate,
-  getSavedJobs
-);
-router.delete(
-  "/jobs/saved/:id",
-  protect,
-  authorize("js"),
-  idParamValidation,
-  validate,
-  unsaveJob
 );
 
 // ============= COMPANY ROUTES =============
