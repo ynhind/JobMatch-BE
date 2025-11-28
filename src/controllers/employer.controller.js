@@ -115,18 +115,29 @@ export const postJob = asyncHandler(async (req, res) => {
     ...req.body,
   };
 
-  const job = await Job.create(jobData);
+  try {
+    const job = await Job.create(jobData);
 
-  // Update company's total jobs count
-  company.totalJobs += 1;
-  await company.save();
+    // Update company's total jobs count
+    company.totalJobs += 1;
+    await company.save();
 
-  return sendSuccess(
-    res,
-    { jobId: job._id, job },
-    "Job posted successfully",
-    201
-  );
+    return sendSuccess(
+      res,
+      { jobId: job._id, job },
+      "Job posted successfully",
+      201
+    );
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((e) => ({
+        field: e.path,
+        message: e.message,
+      }));
+      return sendError(res, "Validation failed", 400, errors);
+    }
+    throw error;
+  }
 });
 
 // @desc    Get my jobs
@@ -249,7 +260,7 @@ export const getJobApplicants = asyncHandler(async (req, res) => {
   const applications = await Application.find(query)
     .populate(
       "jobSeeker",
-      "firstName lastName email avatarUrl phone location skills experiences education"
+      "firstName lastName email avatarUrl phone location skills experiences education resumes fullName"
     )
     .populate("job", "title")
     .sort({ appliedAt: -1 })
